@@ -1,0 +1,10 @@
+{
+    "name": "seastar dev",
+    "dockerFile": "Dockerfile",
+    "context": "../docker/dev",
+    "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools"
+    ],
+    "forwardPorts": [3000]
+  }
