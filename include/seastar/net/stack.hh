@@ -113,7 +113,11 @@ public:
     virtual void close() = 0;
 };
 
+// alias, nothing much
 using udp_channel_impl = datagram_channel_impl;
+
+// jo3yzhu's conclusion:
+// 1. some getter function network interface
 
 class network_interface_impl {
 protected:
