@@ -1,7 +1,7 @@
 {
     "name": "seastar dev",
-    "dockerFile": "Dockerfile",
-    "context": "../docker/dev",
+    "dockerFile": "../docker/dev/Dockerfile",
+    "context": "..",
     "extensions": [
         "ms-vscode.cpptools",
         "ms-vscode.cmake-tools"

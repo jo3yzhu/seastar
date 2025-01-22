@@ -29,6 +29,17 @@ namespace seastar {
 
 namespace net {
 
+// jo3yzhu's conclusion:
+// it seems like a interface class for connected socket, for read/write and some other parameters
+// 1. it defines source(...) as read interface, an data_source provides a future of buffer
+// 2. it defines sink() as write interface, it allows user to write a buffer to the socket
+// 3. the nodelay, keepalive and sockopt options are very likely to be compatible with native linux socket options
+
+// jo3yzhu's confusion:
+// 1. this interface should be thread-safe right? since a socket can be read and written by different threads
+// but there's no thread-safe gurantee data_source and data_sink, maybe it's implemented in their inner implementation wrapped by unique_ptr?
+// 2. it should be a abstraction for both client and server socket, but it seems like it's only for client socket, since it doesn't have a listen method
+
 /// \cond internal
 class connected_socket_impl {
 public:
@@ -51,6 +62,13 @@ public:
     virtual future<> wait_input_shutdown() = 0;
 };
 
+// jo3yzhu's conclusion:
+// it seems like this interface class defines some basic interface for a socket
+// 1. this interface is very likely to be a client-side socket, since it doesn't have a listen method but a connect method
+// 2. connect return a future of connected_socket, indicating the connection is being established and maybe finished soon
+// 3. it also make it possible to implement SO_REUSEADDR feature in userspace network stack, which enable immediate restart port after server crash
+// 4. shutdown method is notably finished at once, no future is returned
+
 class socket_impl {
 public:
     socket_impl() = default;
@@ -63,6 +81,11 @@ public:
     virtual void shutdown() = 0;
 };
 
+// jo3yzhu's conclusion: 
+// 1. this interface class defines some basic interface for a server socket since there's a listen method
+
+// jo3yzhu's confusion:
+// 1. since it's a server-side socket, where's the listen method?
 
 class server_socket_impl {
 public:
@@ -71,6 +94,11 @@ public:
     virtual void abort_accept() = 0;
     virtual socket_address local_address() const = 0;
 };
+
+// jo3yzhu's conclusion:
+// 1. it's a interface class for udp datagram, which is a connectionless communication
+// 2. datagram is a packet with source and destination address, and a packet of data
+// 3. the packet here is heavily optimized for performance, it's part of datagram
 
 class datagram_channel_impl {
 public:
