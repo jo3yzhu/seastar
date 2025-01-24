@@ -29,6 +29,7 @@ namespace seastar {
 
 namespace net {
 
+// jo3yzhu's explanation: pretty print function of the mac address
 std::ostream& operator<<(std::ostream& os, ethernet_address ea) {
     auto& m = ea.mac;
     using u = uint32_t;

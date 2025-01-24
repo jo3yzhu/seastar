@@ -92,7 +92,8 @@ struct eth_hdr {
     auto adjust_endianness(Adjuster a) {
         return a(eth_proto);
     }
-} __attribute__((packed));
+} __attribute__((packed)); 
+// jo3yzhu explained: packed attribute means this struct is very likely to be directly used in transmission.
 
 ethernet_address parse_ethernet_address(std::string addr);
 }
