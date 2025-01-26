@@ -22,6 +22,8 @@ RUN --mount=type=bind,source=./install-dependencies.sh,target=/install-dependenc
     gcc-14 \
     g++-14 \
     pandoc \
+    cmake \
+    wget \
     && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 13 \
     && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 13 \
     && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 14 \
@@ -29,9 +31,20 @@ RUN --mount=type=bind,source=./install-dependencies.sh,target=/install-dependenc
     && update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 18 \
     && update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-19 19 \
     && update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 19 \
-    && update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-19 19 \
-    && bash ./install-dependencies.sh \
-    && apt-get clean \
+    && update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-19 19
+
+RUN wget https://github.com/c-ares/c-ares/releases/download/cares-1_34_1/c-ares-1.34.1.tar.gz \
+    && tar -xvzf c-ares-1.34.1.tar.gz \
+    && cd c-ares-1.34.1 \
+    && ./configure \
+    && make \
+    && make install \
+    && cd .. \
+    && rm -rf c-ares-1.34.1.tar.gz c-ares-1.34.1
+
+RUN bash ./install-dependencies.sh
+
+RUN apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 CMD ["/bin/bash"]
