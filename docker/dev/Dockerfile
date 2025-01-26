@@ -33,7 +33,7 @@ RUN --mount=type=bind,source=./install-dependencies.sh,target=/install-dependenc
     && update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 19 \
     && update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-19 19
 
-RUN wget https://github.com/c-ares/c-ares/releases/download/cares-1_34_1/c-ares-1.34.1.tar.gz \
+RUN wget https://github.com/c-ares/c-ares/releases/download/v1.34.4/c-ares-1.34.4.tar.gz \
     && tar -xvzf c-ares-1.34.1.tar.gz \
     && cd c-ares-1.34.1 \
     && ./configure \
