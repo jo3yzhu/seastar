@@ -42,7 +42,10 @@ RUN wget https://github.com/c-ares/c-ares/releases/download/v1.34.4/c-ares-1.34.
     && cd .. \
     && rm -rf c-ares-1.34.4.tar.gz c-ares-1.34.4
 
-RUN bash ./install-dependencies.sh
+RUN --mount=type=bind,source=./install-dependencies.sh,target=/install-dependencies.sh \
+    apt-get update \
+    && bash ./install-dependencies.sh
+
 
 RUN apt-get clean \
     && rm -rf /var/lib/apt/lists/*
