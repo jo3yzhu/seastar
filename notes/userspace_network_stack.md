@@ -11,7 +11,8 @@ Ethernet dataframe consists of:
 - CRC: checksum
 Ethernet client receives destination MAC address first and quickly check if the packet is sent to it then continues or stops receiving.
 MTU(maximum transmission unit) is a common configuration for Ethernet, which determines threshold for splitting upper data payload. The packet exceeding MTU will be discarded on client side.
-
-## ARP()
+The prototol in Network Access Layer is responsible for communication among devices within one local network.
 
 ## IP()
+
+## ARP()

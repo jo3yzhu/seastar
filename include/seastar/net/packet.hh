@@ -111,6 +111,7 @@ class packet final {
         unsigned _headroom = internal_data_size; // in _data
         // FIXME: share _data/_frags space
 
+        // jo3yzhu's confusion: is it optimized for MTU sencenario?
         fragment _frags[];
 
         impl(size_t nr_frags = default_nr_frags) noexcept;
@@ -507,21 +508,32 @@ void packet::append(packet&& p) {
     _impl->_deleter = std::move(p._impl->_deleter);
 }
 
+// jo3yzhu's conclusion: 
 inline
 char* packet::get_header(size_t offset, size_t size) {
+    // exception handling
     if (offset + size > _impl->_len) {
         return nullptr;
     }
+
+    // looking for the fragment containing the offset
     size_t i = 0;
     while (i != _impl->_nr_frags && offset >= _impl->_frags[i].size) {
+        // step over the fragment if the offset is larger than current fragment size
         offset -= _impl->_frags[i++].size;
     }
+
+    // exception handling
     if (i == _impl->_nr_frags) {
         return nullptr;
     }
+
+    // now offset is within the fragment
+    // but if the size is larger than current fragment size, try to merge following fragments
     if (offset + size > _impl->_frags[i].size) {
         linearize(i, offset + size);
     }
+    // now we get the right fragment with linearized data(maybe merged)
     return _impl->_frags[i].base + offset;
 }
 
