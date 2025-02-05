@@ -55,6 +55,11 @@ struct nested_exception : public std::exception {
     virtual const char* what() const noexcept override;
 };
 
+/// jo3yzhu conclude: 
+/// it's a good way to see future and promise as a pair of reader
+/// and writer of a single-item, single use queue, and conitnuation
+/// is opeartion chain on a series of future and promise
+
 /// \defgroup future-module Futures and Promises
 ///
 /// \brief

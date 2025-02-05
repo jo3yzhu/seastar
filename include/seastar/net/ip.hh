@@ -382,12 +382,12 @@ future<ethernet_address> ipv4_l4<ProtoNum>::get_l2_dst_address(ipv4_address to) 
 }
 
 struct ip_hdr {
-    uint8_t ihl : 4;
-    uint8_t ver : 4;
-    uint8_t dscp : 6;
-    uint8_t ecn : 2;
-    packed<uint16_t> len;
-    packed<uint16_t> id;
+    uint8_t ihl : 4; // header length
+    uint8_t ver : 4; // version
+    uint8_t dscp : 6; // differentitaed service, VoIP?
+    uint8_t ecn : 2; // explicit congestion notification(ECN)
+    packed<uint16_t> len; // unaligned
+    packed<uint16_t> id; 
     packed<uint16_t> frag;
     enum class frag_bits : uint8_t { mf = 13, df = 14, reserved = 15, offset_shift = 3 };
     uint8_t ttl;
