@@ -3,9 +3,9 @@
 1. 首先了解基本概念:
 ```
 // doc/tutorial.md 中的概述部分
-- Seastar的基本架构设计
-- Future/Promise 模型
-- 调度器(cooperative micro-task scheduler)设计
+- Seastar的基本架构设计 done
+- Future/Promise 模型 done
+- 调度器(cooperative micro-task scheduler)设计 doing
 ```
 2. 核心Future/Promise实现:
 ```

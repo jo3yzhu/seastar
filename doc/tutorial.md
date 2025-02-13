@@ -167,6 +167,48 @@ $ ./a.out -c2
 2
 ```
 When the machine is configured as in the example above - two cores with two hyperthreads on each - and only two threads are requested, Seastar ensures that each thread is pinned to a different core, and we don't get the two threads competing as hyperthreads of the same core (which would, of course, damage performance).
+jo3yzhu's conclusion:
+niubility, and I wonder how did seastar achieve that. Here's how Claude answered me:
+```cpp
+// first seastar detects the cpu topology at startup
+// Seastar detects the CPU topology at startup
+struct cpu_topology {
+    // Physical cores
+    std::vector<unsigned> cores;
+    // Hardware threads per core (hyperthreads)
+    unsigned hw_threads_per_core; 
+};
+// then seastar distribute cores for given threads needed, use hyperthreads only if we must
+// Simplified version of how Seastar assigns cores
+std::vector<unsigned> distribute_cores(unsigned n_threads) {
+    std::vector<unsigned> assigned_cores;
+    
+    // First try to use different physical cores
+    for (unsigned i = 0; i < n_threads; i++) {
+        if (i < topology.cores.size()) {
+            // Assign to physical core
+            assigned_cores.push_back(topology.cores[i]);
+        } else {
+            // Only if we must, use hyperthreads
+            unsigned core = topology.cores[i % topology.cores.size()];
+            unsigned hyperthread = 1 + (i / topology.cores.size());
+            assigned_cores.push_back(core + hyperthread * topology.hw_threads_per_core);
+        }
+    }
+    
+    return assigned_cores;
+}
+// the distribution as result for exmaple:
+// On a system with 2 physical cores, each with 2 hyperthreads:
+// When requesting 2 threads:
+Thread 0 -> Core 0, HT 0
+Thread 1 -> Core 1, HT 0 // Uses different physical core
+
+// When requesting 3 threads:
+Thread 0 -> Core 0, HT 0
+Thread 1 -> Core 1, HT 0  
+Thread 2 -> Core 0, HT 1 // Uses hyperthread only when we must
+```
 
 We cannot start more threads than the number of hardware threads, as allowing this will be grossly inefficient. Trying it will result in an error:
 ```none
@@ -301,10 +343,12 @@ Sleeping... 100ms 200ms Done.
 
 seastar::future<int> slow() {
     using namespace std::chrono_literals;
+    // jo3yzhu's tip: it actually returns a chain of futures
     return seastar::sleep(100ms).then([] { return 3; });
 }
 
 seastar::future<> f() {
+    // jo3yzhu's tip: here we call a then method on a chain of futures
     return slow().then([] (int val) {
         std::cout << "Got " << val << "\n";
     });
@@ -339,11 +383,11 @@ seastar::future<> f() {
 
 As described above, an existing fiber of execution will yield back to the event loop when it performs a blocking operation such as IO or sleeping, as it has no more work to do until this blocking operation completes. Should a fiber have a lot of CPU bound work to do without any intervening blocking operations, however, it is important that execution is still yielded back to the event loop periodically.
 
-This is implemented via _preemption_: which can only occur at specific preemption points. At these points the fiber's remaining _task quota_ is checked and it has been exceeded the fiber yields. The task quota is a measure of how long tasks should be allowed to run before yielding to the event loop, and is set to 500 µs by default.
+This is implemented via _preemption_: which can only occur at specific preemption points. At these points the fiber's remaining _task quota_ is checked and it has been exceeded the fiber yields. The task quota is a measure of how long tasks should be allowed to run before yielding to the event loop, and is set to 500 µs by default. (jo3yzhu: so the default timeslice if 500µs if neccesary yield or built-in blocking functions are called properly)
 
 It is important not to starve the event loop, as this would starve continuations of futures that weren't ready but have since become ready, and also starve the important **polling** done by the event loop (e.g., checking whether there is new activity on the network card). For example, iterating over a large container while doing CPU-bound work without any suspension points could starve the reactor and cause a _reactor stall_, which refers to a substantial period of time (e.g., more than 20 milliseconds) during which a task does not yield.
 
-Many seastar constructs such as looping constructs have built-in preemption points. You may also insert your own preemption points by calling `seastar::maybe_yield`, which performs a preemption check. Coroutines will also perform a preemption check at each `co_await`. Note that there is _not_ a preemption check between continuations attached to a future with `then()`, so a recursive future loop without explicit preemption checks may starve the reactor.
+Many seastar constructs such as looping constructs have built-in preemption points. You may also insert your own preemption points by calling `seastar::maybe_yield`, which performs a preemption check. Coroutines will also perform a preemption check at each `co_await`. Note that there is _not_ a preemption check between continuations attached to a future with `then()`, so a recursive future loop without explicit preemption checks may starve the reactor. (jo3yzhu: It's important! No preemption check between continuations connected with a then() calling, so a then().then().then().then() like call might starve the reactor)
 
 # Coroutines
 

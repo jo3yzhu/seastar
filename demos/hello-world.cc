@@ -33,3 +33,7 @@ int main(int argc, char** argv) {
         return make_ready_future<>();
     });
 }
+
+
+// jo3yzhu‘s explain: the basic method to use seastar is to use app_template's run method, 
+// which accept a function that return a future as the process of the application.
